@@ -1,0 +1,986 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+<title>Voxa — A Language That Doesn't Exist</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box}
+:root{
+--bg:#0b1020;--panel:rgba(17,25,45,.86);
+--line:rgba(162,181,220,.13);--muted:#8793ad;
+--text:#eef2ff;--purple:#a78bfa;--cyan:#67e8f9;
+}
+body{
+margin:0;background:var(--bg);color:var(--text);
+font-family:Manrope,system-ui,sans-serif;min-height:100vh;
+}
+.ambient{position:fixed;pointer-events:none;filter:blur(100px);opacity:.17;border-radius:50%;z-index:-1}
+.ambient-one{width:420px;height:420px;background:#6847d9;top:120px;left:-180px}
+.ambient-two{width:500px;height:500px;background:#087c9c;right:-220px;top:430px}
+.topbar{
+height:76px;border-bottom:1px solid var(--line);
+display:flex;align-items:center;justify-content:space-between;
+padding:0 max(calc((100vw - 1180px)/2),28px)
+}
+.brand{display:flex;align-items:center;gap:10px;color:white;text-decoration:none;font-weight:800;font-size:21px;letter-spacing:-1px}
+.brand-mark{display:grid;place-items:center;width:29px;height:29px;border-radius:9px;background:linear-gradient(135deg,#a78bfa,#67e8f9);color:#0b1020;font-size:22px}
+.brand-dot{color:var(--cyan)}
+.top-note,.github-link,.eyebrow,.tiny-status,.step,.field-label,.range-caption,.result-meta,.translated-heading,.version,footer{font-family:"DM Mono",monospace;letter-spacing:.08em}
+.top-note{font-size:10px;color:#9aa7c2;display:flex;align-items:center;gap:9px}
+.live-dot{width:6px;height:6px;background:#70e5c1;border-radius:50%;box-shadow:0 0 10px #70e5c1}
+.github-link{font-size:10px;color:#aeb8ce}
+main{max-width:1180px;margin:auto;padding:72px 28px 35px}
+.hero{text-align:center;margin-bottom:54px}
+.eyebrow{display:flex;align-items:center;justify-content:center;gap:10px;color:#a9a0ef;font-size:10px}
+.eyebrow-line{height:1px;width:25px;background:#8f7cf2}
+.hero h1{font-size:clamp(42px,6vw,68px);line-height:1.08;letter-spacing:-4px;margin:19px 0 16px;font-weight:800}
+.hero h1 span{background:linear-gradient(95deg,#a78bfa 15%,#67e8f9 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-copy{color:#9ca8c0;font-size:15px;max-width:540px;line-height:1.7;margin:auto}
+.workspace{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:stretch}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;box-shadow:0 18px 70px rgba(0,0,0,.17);backdrop-filter:blur(16px)}
+.controls{padding:25px 23px}
+.panel-heading,.output-intro{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.panel-heading>div,.output-intro>div{display:flex;align-items:center;gap:11px}
+.step{color:#8c82df;font-size:10px}
+.panel h2{font-size:15px;margin:0;font-weight:700}
+.tiny-status{font-size:9px;color:#77849e}
+.field-label{display:block;font-size:9px;color:#a3aec4;margin-bottom:10px}
+.control-input{width:100%;background:#10192d;border:1px solid rgba(158,177,216,.18);border-radius:9px;padding:13px 14px;color:#edf1ff;font:500 12px Manrope;outline:none}
+.control-input:focus{border-color:#8e80e9;box-shadow:0 0 0 3px rgba(142,128,233,.1)}
+select.control-input{appearance:auto}
+.field-spaced{margin-top:25px}
+.style-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.style-option{background:#111b30;border:1px solid rgba(158,177,216,.13);border-radius:8px;color:#aab5ca;padding:10px 11px;text-align:left;font:600 11px Manrope;cursor:pointer}
+.style-option span{color:#a995f7;font-size:15px;margin-right:6px}
+.style-option.active,.style-option:hover{border-color:#8e80e9;background:rgba(142,128,233,.12);color:white}
+.range-row{display:flex;align-items:center;gap:12px;color:#8996b0;font-size:10px}
+.range-row input{flex:1;accent-color:#a78bfa}
+.range-caption{display:flex;justify-content:space-between;color:#697792;font-size:8px;margin-top:5px}
+.range-caption span:nth-child(2){color:#b9afff}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;margin-top:22px}
+.toggle-row strong,.toggle-row small{display:block}
+.toggle-row strong{font-size:11px;font-weight:600}
+.toggle-row small{font-size:9px;color:#7f8ba4;margin-top:4px}
+.switch{position:relative;width:34px;height:19px}
+.switch input{opacity:0;width:0;height:0}
+.switch span{position:absolute;inset:0;background:#303c53;border-radius:20px;cursor:pointer;transition:.2s}
+.switch span:before{content:"";position:absolute;width:13px;height:13px;left:3px;top:3px;background:#aab4c8;border-radius:50%;transition:.2s}
+.switch input:checked+span{background:#7667cb}
+.switch input:checked+span:before{transform:translateX(15px);background:white}
+.secondary-button{margin-top:25px;width:100%;background:transparent;border:1px solid var(--line);color:#aeb8ce;border-radius:8px;padding:11px;font:600 10px Manrope;cursor:pointer}
+.generator{padding:0 29px 18px;min-height:570px;display:flex;flex-direction:column}
+.tabs{display:flex;gap:21px;border-bottom:1px solid var(--line);margin:0 -29px 30px;padding:0 29px;overflow-x:auto}
+.tab{white-space:nowrap;background:none;border:0;color:#77849e;padding:19px 0 15px;font:600 11px Manrope;cursor:pointer;position:relative}
+.tab.active{color:#f1efff}
+.tab.active:after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:2px;background:linear-gradient(90deg,#a78bfa,#67e8f9)}
+.tab-panel{flex:1}
+.hidden{display:none!important}
+.output-intro{margin-bottom:23px}
+.output-intro p{font-size:10px;color:#7f8ba4}
+.word-display{min-height:265px;border:1px dashed rgba(155,173,213,.2);border-radius:12px;background:rgba(7,13,27,.34);padding:23px;display:flex;align-content:flex-start;align-items:flex-start;gap:11px;flex-wrap:wrap}
+.word-placeholder{color:#68758e;font-size:12px;margin:auto;align-self:center}
+.cursor{display:inline-block;width:5px;height:13px;background:#9d8df3;vertical-align:middle;margin-left:4px;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:0}}
+.generated-word{font-family:"DM Mono",monospace;font-size:17px;color:#e7e4ff;padding:11px 14px;background:linear-gradient(135deg,rgba(143,119,228,.17),rgba(80,190,211,.08));border:1px solid rgba(160,145,240,.2);border-radius:8px;animation:rise .35s both}
+@keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.action-row{display:flex;gap:9px;margin-top:15px}
+.primary-button{border:0;border-radius:9px;padding:13px 19px;background:linear-gradient(105deg,#8b76e9,#57bccc);color:#0a1020;font:800 11px Manrope;cursor:pointer;transition:.2s}
+.primary-button:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.primary-button:disabled{opacity:.5;cursor:wait}
+.primary-button span{font-size:14px;margin-right:6px}
+.icon-button{width:43px;border-radius:9px;border:1px solid var(--line);background:#111b30;color:#b6c1d7;font-size:18px;cursor:pointer}
+.result-meta{display:flex;justify-content:space-between;color:#66748e;font-size:8px;margin-top:17px}
+.generator-foot{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:16px;margin-top:24px;color:#74819b;font-size:10px}
+.sound-wave{height:13px;display:flex;gap:2px;align-items:center}
+.sound-wave i{display:block;width:2px;background:#9b8cf0;border-radius:2px;height:5px}
+.sound-wave i:nth-child(2),.sound-wave i:nth-child(4){height:12px}
+.sound-wave i:nth-child(3){height:8px}
+.sentence-input{min-height:110px;resize:vertical;line-height:1.6}
+.sentence-footer{display:flex;justify-content:space-between;font-size:9px;color:#73809a;margin-top:7px}
+.full-button{width:100%;margin-top:15px}
+.translated-wrap{margin-top:21px;border:1px solid var(--line);border-radius:11px;padding:16px;background:rgba(7,13,27,.28)}
+.translated-heading{display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#9eabc4}
+.text-button{border:0;background:none;color:#a99af8;font:600 10px Manrope;cursor:pointer}
+.sentence-result{min-height:74px;padding:19px 0 12px;color:#e8e4ff;font:16px/1.8 "DM Mono",monospace;overflow-wrap:anywhere}
+.listen-row{border-top:1px solid var(--line);padding-top:11px;display:flex;align-items:center;gap:12px}
+.listen-button{background:#17223a;border:1px solid var(--line);border-radius:7px;padding:7px 11px;color:#c9d1e3;font:600 10px Manrope;cursor:pointer}
+.listen-row span{font-size:9px;color:#71809b}
+.bottom-note{display:flex;justify-content:space-between;align-items:center;margin-top:23px;padding:17px 20px;border:1px solid var(--line);border-radius:12px;background:rgba(16,25,44,.55)}
+.bottom-note>div{display:flex;align-items:center;gap:13px}
+.bottom-icon{font-size:19px;color:#a995f7}
+.bottom-note strong{font-size:11px}
+.bottom-note p{font-size:9px;color:#8491aa;margin:5px 0 0}
+.version{font-size:8px;color:#66748e}
+footer{max-width:1180px;margin:auto;padding:25px 28px 35px;display:flex;justify-content:space-between;color:#586680;font-size:8px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);opacity:0;background:#e8e5ff;color:#15132a;padding:11px 17px;border-radius:8px;font-size:11px;font-weight:700;transition:.25s;pointer-events:none;z-index:10}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* Translator */
+.translator-languages{display:grid;grid-template-columns:1fr 38px 1fr;gap:10px;align-items:end;margin-bottom:22px}
+.swap-button{width:38px;height:42px;margin-bottom:0;font-size:20px;color:#a995f7}
+#realInput{min-height:125px}
+#realResult{min-height:90px}
+#translateStatus{color:#8996b0;font-size:10px;overflow-wrap:anywhere}
+
+/* Word quest */
+.game-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.game-stat{background:#111b30;border:1px solid rgba(158,177,216,.13);border-radius:9px;padding:13px}
+.game-stat span{display:block;color:#8390aa;font:9px "DM Mono",monospace;letter-spacing:.1em}
+.game-stat strong{display:block;color:#c7baff;font-size:22px;margin-top:5px}
+.game-card{background:rgba(7,13,27,.4);border:1px solid rgba(158,177,216,.17);border-radius:13px;padding:25px;text-align:center}
+.game-eyebrow{color:#9a8bed;font:10px "DM Mono",monospace;letter-spacing:.12em}
+.game-word{font:800 43px Manrope;letter-spacing:-2px;margin:17px 0 5px;background:linear-gradient(100deg,#b49cff,#67e8f9);color:transparent;background-clip:text}
+.game-hint{color:#8591aa;font-size:11px;margin-bottom:24px}
+.game-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.game-choice{min-height:48px;border:1px solid rgba(158,177,216,.17);background:#111b30;border-radius:9px;color:#dce3f4;font:600 11px Manrope;cursor:pointer;transition:.2s}
+.game-choice:not(:disabled):hover{border-color:#a78bfa;background:rgba(167,139,250,.14)}
+.game-choice.correct{border-color:#4bd9a5;background:rgba(75,217,165,.13);color:#8cf1c8}
+.game-choice.wrong{border-color:#ef8295;background:rgba(239,130,149,.12);color:#ff9cac}
+.game-choice:disabled{cursor:default;opacity:.85}
+.game-feedback{min-height:35px;padding:13px 0 3px;color:#9aabca;font-size:11px}
+.game-bottom{display:flex;gap:12px;align-items:center;margin-top:19px;padding:15px;background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.13);border-radius:10px}
+.game-bottom>span{font-size:20px;color:#b09bff}
+.game-bottom strong{font-size:11px}
+.game-bottom p{font-size:9px;color:#8591aa;margin:5px 0 0}
+
+@media(max-width:800px){
+main{padding-top:48px}
+.workspace{grid-template-columns:1fr}
+.controls{order:2}.generator{order:1;min-height:530px}
+.hero h1{letter-spacing:-2.5px}
+.top-note{display:none}
+}
+@media(max-width:480px){
+.topbar{padding:0 18px}
+.github-link{font-size:8px}
+main{padding-left:16px;padding-right:16px}
+.hero{margin-bottom:35px}
+.hero-copy{font-size:13px}
+.generator{padding-left:17px;padding-right:17px}
+.tabs{margin-left:-17px;margin-right:-17px;padding-left:17px;padding-right:17px;gap:17px}
+.output-intro{align-items:flex-start;gap:10px;flex-direction:column}
+.output-intro p{margin:0 0 0 26px}
+.word-display{min-height:220px;padding:15px}
+.bottom-note{align-items:flex-start}
+.version{display:none}
+footer{padding-left:18px;padding-right:18px;font-size:7px}
+.translator-languages{grid-template-columns:1fr 35px 1fr;gap:6px}
+.game-card{padding:17px}
+.game-word{font-size:35px}
+.game-choice{font-size:10px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="ambient ambient-one"></div>
+<div class="ambient ambient-two"></div>
+
+<header class="topbar">
+<a class="brand" href="#">
+<span class="brand-mark">v</span>
+<span>voxa<span class="brand-dot">.</span></span>
+</a>
+<div class="top-note"><span class="live-dot"></span> THE ART OF MEANINGLESS SPEECH</div>
+<span class="github-link">A LANGUAGE THAT DOESN'T EXIST</span>
+</header>
+
+<main>
+
+<section class="hero">
+<div class="eyebrow"><span class="eyebrow-line"></span> INVENT A LANGUAGE</div>
+<h1>Sounds like something.<br><span>Means nothing.</span></h1>
+<p class="hero-copy">Create words that feel familiar, sentences that sound human, and languages that have never existed.</p>
+</section>
+
+<section class="workspace">
+
+<aside class="controls panel">
+
+<div class="panel-heading">
+<div><span class="step">01</span><h2>Shape your sound</h2></div>
+<span class="tiny-status">CUSTOMIZE</span>
+</div>
+
+<label class="field-label" for="influence">Language influence</label>
+
+<select id="influence" class="control-input">
+<option value="english">English-like</option>
+<option value="czech">Czech-like</option>
+<option value="german">German-like</option>
+<option value="french">French-like</option>
+<option value="spanish">Spanish-like</option>
+<option value="japanese">Japanese-like</option>
+<option value="arabic">Arabic-like</option>
+<option value="nordic">Nordic-like</option>
+<option value="invented">Completely new</option>
+</select>
+
+<div class="field-label field-spaced">Sound character</div>
+
+<div class="style-grid">
+<button class="style-option active" data-style="natural">◌ Natural</button>
+<button class="style-option" data-style="soft">〰 Soft</button>
+<button class="style-option" data-style="sharp">⌁ Sharp</button>
+<button class="style-option" data-style="ancient">✳ Ancient</button>
+<button class="style-option" data-style="futuristic">⟡ Futuristic</button>
+<button class="style-option" data-style="dreamy">☾ Dreamy</button>
+</div>
+
+<div class="field-label field-spaced">Word length</div>
+
+<div class="range-row">
+<span>Short</span>
+<input id="length" type="range" min="1" max="5" value="3">
+<span>Long</span>
+</div>
+
+<div class="range-caption">
+<span>Compact</span><span id="lengthValue">Balanced</span><span>Elaborate</span>
+</div>
+
+<div class="toggle-row">
+<div><strong>Keep it pronounceable</strong><small>Favor natural human syllables</small></div>
+<label class="switch"><input id="pronounceable" type="checkbox" checked><span></span></label>
+</div>
+
+<div class="toggle-row">
+<div><strong>Consistent sound system</strong><small>Reuse the same phonetic rules</small></div>
+<label class="switch"><input id="consistent" type="checkbox" checked><span></span></label>
+</div>
+
+<button class="secondary-button" id="randomize">↻ Surprise me with a style</button>
+
+</aside>
+
+<section class="generator panel">
+
+<div class="tabs" role="tablist">
+<button class="tab active" data-tab="words">Word laboratory</button>
+<button class="tab" data-tab="sentence">Sentence shifter</button>
+<button class="tab" data-tab="translator">Real translator</button>
+<button class="tab" data-tab="game">Word quest ✦</button>
+</div>
+
+<!-- WORD LAB -->
+
+<div id="wordsPanel" class="tab-panel">
+
+<div class="output-intro">
+<div><span class="step">02</span><h2>Discover new words</h2></div>
+<p>Freshly invented. Entirely meaningless.</p>
+</div>
+
+<div class="word-display" id="wordDisplay">
+<span class="word-placeholder">Your new words will appear here<span class="cursor"></span></span>
+</div>
+
+<div class="action-row">
+<button class="primary-button" id="generateWords">✦ Generate words</button>
+<button class="icon-button" id="copyWords" title="Copy words">▢</button>
+</div>
+
+<div class="result-meta">
+<span id="wordCount">READY TO INVENT</span>
+<span>NO DICTIONARY. NO DEFINITIONS.</span>
+</div>
+
+</div>
+
+<!-- FAKE SENTENCE -->
+
+<div id="sentencePanel" class="tab-panel hidden">
+
+<div class="output-intro">
+<div><span class="step">02</span><h2>Shift a sentence</h2></div>
+<p>Turn familiar text into unfamiliar speech.</p>
+</div>
+
+<label class="field-label" for="sourceText">YOUR SENTENCE</label>
+
+<textarea id="sourceText" class="control-input sentence-input" maxlength="600" placeholder="The moon is shining over the quiet city..."></textarea>
+
+<div class="sentence-footer">
+<span id="charCount">0 / 600</span>
+<span>Transformed locally in your browser.</span>
+</div>
+
+<button class="primary-button full-button" id="transformSentence">✦ Invent my sentence</button>
+
+<div class="translated-wrap">
+<div class="translated-heading">
+<span>YOUR FICTIONAL SENTENCE</span>
+<button class="text-button" id="copySentence">Copy text ↗</button>
+</div>
+
+<div id="sentenceResult" class="sentence-result">Your invented sentence will appear here.</div>
+
+<div class="listen-row">
+<button class="listen-button" id="speakSentence">▶ Listen</button>
+<span>Uses your browser's speech synthesis.</span>
+</div>
+</div>
+
+</div>
+
+<!-- REAL TRANSLATOR -->
+
+<div id="translatorPanel" class="tab-panel hidden">
+
+<div class="output-intro">
+<div><span class="step">03</span><h2>Real language translation</h2></div>
+<p>Actual translations, not invented words.</p>
+</div>
+
+<div class="translator-languages">
+<div>
+<label class="field-label" for="translateFrom">FROM</label>
+<select id="translateFrom" class="control-input">
+<option value="en">English</option>
+<option value="cs">Czech</option>
+<option value="de">German</option>
+<option value="fr">French</option>
+<option value="es">Spanish</option>
+<option value="it">Italian</option>
+<option value="pt">Portuguese</option>
+<option value="pl">Polish</option>
+<option value="ja">Japanese</option>
+<option value="ru">Russian</option>
+<option value="ar">Arabic</option>
+<option value="zh">Chinese</option>
+</select>
+</div>
+
+<button id="swapLanguages" class="icon-button swap-button" title="Swap languages">⇄</button>
+
+<div>
+<label class="field-label" for="translateTo">TO</label>
+<select id="translateTo" class="control-input">
+<option value="cs">Czech</option>
+<option value="en">English</option>
+<option value="de">German</option>
+<option value="fr">French</option>
+<option value="es">Spanish</option>
+<option value="it">Italian</option>
+<option value="pt">Portuguese</option>
+<option value="pl">Polish</option>
+<option value="ja">Japanese</option>
+<option value="ru">Russian</option>
+<option value="ar">Arabic</option>
+<option value="zh">Chinese</option>
+</select>
+</div>
+</div>
+
+<label class="field-label" for="realInput">YOUR TEXT</label>
+
+<textarea id="realInput" class="control-input sentence-input" maxlength="450" placeholder="Write something you want translated..."></textarea>
+
+<button id="realTranslate" class="primary-button full-button">✦ Translate for real</button>
+
+<div class="translated-wrap">
+<div class="translated-heading">
+<span>REAL TRANSLATION</span>
+<button id="copyReal" class="text-button">Copy ↗</button>
+</div>
+
+<div id="realResult" class="sentence-result">Your translation will appear here.</div>
+
+<div class="listen-row">
+<span id="translateStatus">Powered by MyMemory translation API.</span>
+</div>
+</div>
+
+</div>
+
+<!-- GAME -->
+
+<div id="gamePanel" class="tab-panel hidden">
+
+<div class="output-intro">
+<div><span class="step">04</span><h2>Enter the word quest</h2></div>
+<p>Learn a language that doesn't exist.</p>
+</div>
+
+<div class="game-stats">
+<div class="game-stat"><span>SCORE</span><strong id="gameScore">0</strong></div>
+<div class="game-stat"><span>STREAK</span><strong id="gameStreak">0</strong></div>
+<div class="game-stat"><span>ROUND</span><strong id="gameRound">0/10</strong></div>
+</div>
+
+<div class="game-card">
+
+<div class="game-eyebrow">WHAT DOES THIS WORD MEAN?</div>
+
+<div id="gameWord" class="game-word">VOXA</div>
+
+<p id="gameHint" class="game-hint">Start a quest to discover your first word.</p>
+
+<div id="gameChoices" class="game-choices">
+<button class="game-choice" disabled>Answer 1</button>
+<button class="game-choice" disabled>Answer 2</button>
+<button class="game-choice" disabled>Answer 3</button>
+<button class="game-choice" disabled>Answer 4</button>
+</div>
+
+<div id="gameFeedback" class="game-feedback">Your fictional vocabulary adventure awaits.</div>
+
+<button id="nextGame" class="primary-button full-button">✦ Start word quest</button>
+
+</div>
+
+<div class="game-bottom">
+<span>✳</span>
+<div>
+<strong>Every word has a secret.</strong>
+<p>Learn ten invented words. Get them right. Build your streak.</p>
+</div>
+</div>
+
+</div>
+
+<div class="generator-foot">
+<span class="sound-wave"><i></i><i></i><i></i><i></i><i></i></span>
+A language is a feeling, not a dictionary.
+</div>
+
+</section>
+</section>
+
+<section class="bottom-note">
+<div>
+<span class="bottom-icon">✳</span>
+<div>
+<strong>Familiar on the surface. Unreadable underneath.</strong>
+<p>Voxa imitates sound patterns, not meanings. It does not preserve the meaning of your original text.</p>
+</div>
+</div>
+<span class="version">VOXA ENGINE / 02</span>
+</section>
+
+</main>
+
+<footer>
+<span>VOXA © 2026</span>
+<span>MADE FOR THE SOUND OF NOTHING</span>
+<span>BUILT ON THE EDGE</span>
+</footer>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// ========================================
+// VOXA ENGINE
+// ========================================
+
+const $ = id => document.getElementById(id);
+
+let currentStyle = "natural";
+let latestWords = [];
+let latestSentence = "";
+let latestRealTranslation = "";
+
+let game = {
+  index: 0,
+  score: 0,
+  streak: 0,
+  questions: [],
+  answered: false
+};
+
+const profiles = {
+english:{
+on:["b","d","f","g","h","j","k","l","m","n","p","r","s","sh","t","v","w","z","th"],
+vowels:["a","e","i","o","u","ae","ai","ou","ee"],
+end:["n","r","s","t","l","m","d","k","sh","ng"]
+},
+czech:{
+on:["b","d","h","k","l","m","n","p","r","s","t","v","z","č","š","ž","ch"],
+vowels:["a","e","i","o","u","á","é","í","ou","ě"],
+end:["k","l","m","n","r","s","t","v","ch","š"]
+},
+german:{
+on:["b","d","f","g","h","k","l","m","n","p","r","s","sch","t","v","w","z"],
+vowels:["a","e","i","o","u","ei","au","eu","ie"],
+end:["ch","en","er","t","s","n","r","l","g","k"]
+},
+french:{
+on:["b","d","f","j","l","m","n","p","r","s","t","v","z","ch"],
+vowels:["a","e","i","o","u","ou","oi","eu","é","è"],
+end:["n","m","r","l","s","t","x"]
+},
+spanish:{
+on:["b","d","f","g","j","l","m","n","p","r","s","t","v","y","ch"],
+vowels:["a","e","i","o","u","ia","ie","ue","io"],
+end:["n","r","s","l","d","z"]
+},
+japanese:{
+on:["k","s","sh","t","ch","n","h","m","y","r","w","g","z"],
+vowels:["a","i","u","e","o"],
+end:["n","","","",""]
+},
+arabic:{
+on:["b","d","f","h","kh","l","m","n","q","r","s","sh","t","w","y","z"],
+vowels:["a","i","u","aa","ii","uu"],
+end:["n","r","m","l","s","h","k","q","t"]
+},
+nordic:{
+on:["b","d","f","g","h","j","k","l","m","n","r","s","sk","t","v"],
+vowels:["a","e","i","o","u","y","å","ö","ei"],
+end:["n","r","s","t","l","k","ng","d"]
+},
+invented:{
+on:["v","zh","k","m","th","r","l","n","q","x","d","sh","w","j"],
+vowels:["a","e","i","o","u","ae","ia","uo","ei","y"],
+end:["n","r","s","l","m","th","x","k","zh",""]
+}
+};
+
+const styles = {
+natural:{},
+soft:{on:["l","m","n","v","w","y","s","sh","r","h"],end:["n","m","l","r","s",""]},
+sharp:{on:["k","t","z","q","x","ch","d","g","sk"],end:["k","t","x","z","sh","n"]},
+ancient:{on:["th","r","m","n","d","g","k","s","v","h"],vowels:["a","o","u","ae","ia","or"],end:["r","n","s","th","m","l"]},
+futuristic:{on:["v","z","x","q","sh","j","k","r","th"],vowels:["ae","io","ei","u","y","a","o"],end:["x","z","n","r","th","k"]},
+dreamy:{on:["l","m","s","sh","n","v","h","y"],vowels:["ia","ea","ou","a","e","i","o"],end:["l","n","m","s",""]}
+};
+
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+
+function settings(){
+return {
+influence:$("influence").value,
+style:currentStyle,
+length:Number($("length").value),
+pronounceable:$("pronounceable").checked,
+consistent:$("consistent").checked
+};
+}
+
+function makeWord(config){
+const profile=profiles[config.influence]||profiles.invented;
+const style=styles[config.style]||{};
+
+const on=style.on||profile.on;
+const vowels=style.vowels||profile.vowels;
+const endings=style.end||profile.end;
+
+const syllables=Math.max(1,Math.min(6,config.length+(Math.random()<.3?0:-1)));
+
+let word="";
+
+for(let i=0;i<syllables;i++){
+let onset=pick(on);
+const vowel=pick(vowels);
+const ending=pick(endings);
+
+if(!config.pronounceable&&Math.random()<.3){
+onset+=pick(["r","k","s","th"]);
+}
+
+word+=onset+vowel;
+
+if(i===syllables-1||Math.random()<.25){
+word+=ending;
+}
+}
+
+if(config.influence==="french"&&Math.random()<.45){
+word=word.replace(/s$/,"");
+}
+
+if(config.influence==="japanese"){
+word=word.replace(/([^aeiou])([^aeiou])/g,"$1u$2");
+}
+
+word=word.replace(/(.)\1{2,}/g,"$1$1");
+
+return word.charAt(0).toUpperCase()+word.slice(1);
+}
+
+function toast(message){
+$("toast").textContent=message;
+$("toast").classList.add("show");
+clearTimeout(window.voxaToastTimer);
+window.voxaToastTimer=setTimeout(()=>$("toast").classList.remove("show"),2200);
+}
+
+async function copyText(text){
+if(!text){toast("Nothing to copy yet.");return;}
+try{
+await navigator.clipboard.writeText(text);
+toast("Copied successfully.");
+}catch{
+toast("Clipboard access unavailable.");
+}
+}
+
+// ========================================
+// NAVIGATION
+// ========================================
+
+document.querySelectorAll(".tab").forEach(button=>{
+button.addEventListener("click",()=>{
+document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+button.classList.add("active");
+
+["words","sentence","translator","game"].forEach(name=>{
+$(name+"Panel").classList.toggle("hidden",button.dataset.tab!==name);
+});
+});
+});
+
+// ========================================
+// SETTINGS
+// ========================================
+
+document.querySelectorAll(".style-option").forEach(button=>{
+button.addEventListener("click",()=>{
+document.querySelectorAll(".style-option").forEach(b=>b.classList.remove("active"));
+button.classList.add("active");
+currentStyle=button.dataset.style;
+});
+});
+
+$("length").addEventListener("input",e=>{
+$("lengthValue").textContent=["Tiny","Short","Balanced","Long","Elaborate"][Number(e.target.value)-1];
+});
+
+$("randomize").addEventListener("click",()=>{
+$("influence").value=pick(Object.keys(profiles));
+currentStyle=pick(Object.keys(styles));
+
+document.querySelectorAll(".style-option").forEach(b=>{
+b.classList.toggle("active",b.dataset.style===currentStyle);
+});
+
+$("length").value=1+Math.floor(Math.random()*5);
+$("length").dispatchEvent(new Event("input"));
+
+toast("New language identity ready.");
+});
+
+// ========================================
+// WORD GENERATOR
+// ========================================
+
+$("generateWords").addEventListener("click",()=>{
+const unique=new Set();
+
+while(unique.size<12){
+unique.add(makeWord(settings()));
+}
+
+latestWords=[...unique];
+
+$("wordDisplay").innerHTML=latestWords.map((word,i)=>
+`<span class="generated-word" style="animation-delay:${i*35}ms">${word}</span>`
+).join("");
+
+$("wordCount").textContent="12 WORDS CREATED";
+});
+
+$("copyWords").addEventListener("click",()=>copyText(latestWords.join(", ")));
+
+// ========================================
+// SENTENCE CONVERTER
+// ========================================
+
+$("sourceText").addEventListener("input",e=>{
+$("charCount").textContent=e.target.value.length+" / 600";
+});
+
+function fakeSentence(text,config){
+const dictionary=new Map();
+
+return text.replace(/[A-Za-zÀ-ž0-9]+(?:['’][A-Za-zÀ-ž]+)*/g,original=>{
+const key=original.toLocaleLowerCase();
+
+if(config.consistent&&dictionary.has(key)){
+return dictionary.get(key);
+}
+
+const length=Math.max(1,Math.min(5,
+config.length+(original.length>8?1:original.length<4?-1:0)
+));
+
+let result=makeWord({...config,length});
+
+if(!/^[A-ZÀ-Ž]/.test(original)){
+result=result.toLowerCase();
+}
+
+if(config.consistent){
+dictionary.set(key,result);
+}
+
+return result;
+});
+}
+
+$("transformSentence").addEventListener("click",()=>{
+const text=$("sourceText").value.trim();
+
+if(!text){toast("Write a sentence first.");return;}
+
+latestSentence=fakeSentence(text,settings());
+$("sentenceResult").textContent=latestSentence;
+});
+
+$("copySentence").addEventListener("click",()=>copyText(latestSentence));
+
+// ========================================
+// SPEECH
+// ========================================
+
+$("speakSentence").addEventListener("click",()=>{
+if(!latestSentence){toast("Invent a sentence first.");return;}
+
+if(!window.speechSynthesis){toast("Speech not supported.");return;}
+
+speechSynthesis.cancel();
+
+const voiceLanguages={
+english:"en-US",czech:"cs-CZ",german:"de-DE",
+french:"fr-FR",spanish:"es-ES",japanese:"ja-JP",
+arabic:"ar-SA",nordic:"sv-SE",invented:"en-US"
+};
+
+const speech=new SpeechSynthesisUtterance(latestSentence);
+speech.lang=voiceLanguages[$("influence").value];
+speech.rate=currentStyle==="ancient"?.82:.95;
+
+speechSynthesis.speak(speech);
+});
+
+// ========================================
+// REAL TRANSLATOR
+// MyMemory public translation API
+// ========================================
+
+$("swapLanguages").addEventListener("click",()=>{
+const from=$("translateFrom");
+const to=$("translateTo");
+
+const old=from.value;
+from.value=to.value;
+to.value=old;
+});
+
+$("realTranslate").addEventListener("click",async()=>{
+const text=$("realInput").value.trim();
+
+if(!text){toast("Enter text to translate.");return;}
+
+if(new TextEncoder().encode(text).length>500){
+toast("Please shorten your text to 500 bytes.");
+return;
+}
+
+const from=$("translateFrom").value;
+const to=$("translateTo").value;
+
+if(from===to){toast("Choose two different languages.");return;}
+
+const button=$("realTranslate");
+
+button.disabled=true;
+button.textContent="Translating…";
+$("translateStatus").textContent="Contacting translation service…";
+$("realResult").textContent="";
+
+try{
+const params=new URLSearchParams({
+q:text,
+langpair:from+"|"+to
+});
+
+const response=await fetch(
+"https://api.mymemory.translated.net/get?"+params.toString()
+);
+
+if(!response.ok)throw new Error("Translation service unavailable.");
+
+const data=await response.json();
+
+if(data.responseStatus!==200||!data.responseData?.translatedText){
+throw new Error(data.responseDetails||"No translation returned.");
+}
+
+latestRealTranslation=data.responseData.translatedText;
+$("realResult").textContent=latestRealTranslation;
+$("translateStatus").textContent="Translation completed successfully.";
+
+}catch(error){
+$("realResult").textContent="Translation unavailable. Please try again.";
+$("translateStatus").textContent=error.message+" The free service may be temporarily unavailable.";
+}finally{
+button.disabled=false;
+button.textContent="✦ Translate for real";
+}
+});
+
+$("copyReal").addEventListener("click",()=>copyText(latestRealTranslation));
+
+// ========================================
+// WORD QUEST GAME
+// ========================================
+
+// These meanings exist ONLY inside the game.
+// The fictional words themselves have no real meaning.
+
+const meanings=[
+"Moon","Ocean","Fire","Dream","Friend",
+"Mountain","Shadow","Star","Forest","Time",
+"Secret","Rain","Music","Light","Journey",
+"Wind","Memory","Night","Hope","Silence",
+"Flower","Sun","River","Cloud","Storm",
+"Love","Stone","Bird","Sleep","Magic"
+];
+
+function shuffle(array){
+const result=[...array];
+
+for(let i=result.length-1;i>0;i--){
+const j=Math.floor(Math.random()*(i+1));
+[result[i],result[j]]=[result[j],result[i]];
+}
+
+return result;
+}
+
+function newGame(){
+const config=settings();
+const selected=shuffle(meanings).slice(0,10);
+
+game={
+index:0,
+score:0,
+streak:0,
+questions:selected.map(meaning=>({
+word:makeWord(config),
+meaning:meaning
+})),
+answered:false
+};
+
+$("gameScore").textContent="0";
+$("gameStreak").textContent="0";
+$("gameRound").textContent="0/10";
+
+showQuestion();
+}
+
+function showQuestion(){
+if(game.index>=10){
+finishGame();
+return;
+}
+
+const question=game.questions[game.index];
+
+game.answered=false;
+
+$("gameWord").textContent=question.word;
+$("gameHint").textContent="Choose the correct meaning.";
+$("gameRound").textContent=(game.index+1)+"/10";
+$("gameFeedback").textContent="Trust your memory.";
+
+const wrong=shuffle(meanings.filter(m=>m!==question.meaning)).slice(0,3);
+const options=shuffle([question.meaning,...wrong]);
+
+$("gameChoices").innerHTML="";
+
+options.forEach(answer=>{
+const button=document.createElement("button");
+
+button.className="game-choice";
+button.textContent=answer;
+
+button.addEventListener("click",()=>answerQuestion(answer,button));
+
+$("gameChoices").appendChild(button);
+});
+
+$("nextGame").textContent="Next word →";
+}
+
+function answerQuestion(answer,button){
+if(game.answered)return;
+
+game.answered=true;
+
+const question=game.questions[game.index];
+const correct=answer===question.meaning;
+
+document.querySelectorAll(".game-choice").forEach(choice=>{
+choice.disabled=true;
+
+if(choice.textContent===question.meaning){
+choice.classList.add("correct");
+}
+});
+
+if(correct){
+game.score+=10;
+game.streak++;
+
+button.classList.add("correct");
+$("gameFeedback").textContent="✦ Correct! "+question.word+" means "+question.meaning+".";
+}else{
+game.streak=0;
+button.classList.add("wrong");
+$("gameFeedback").textContent="Not quite! "+question.word+" means "+question.meaning+".";
+}
+
+$("gameScore").textContent=game.score;
+$("gameStreak").textContent=game.streak;
+}
+
+function finishGame(){
+$("gameWord").textContent="VOXA";
+$("gameHint").textContent="Your quest is complete.";
+$("gameChoices").innerHTML="";
+
+$("gameFeedback").textContent=
+"You scored "+game.score+" out of 100 points!";
+
+$("gameRound").textContent="10/10";
+
+$("nextGame").textContent="↻ Play again";
+game.index=10;
+}
+
+$("nextGame").addEventListener("click",()=>{
+if(game.questions.length===0||game.index>=10){
+newGame();
+return;
+}
+
+if(!game.answered&&game.index===0){
+showToast("Choose an answer first.");
+return;
+}
+
+if(!game.answered){
+showToast("Answer this word first.");
+return;
+}
+
+game.index++;
+showQuestion();
+});
+
+</script>
+
+</body>
+</html>
